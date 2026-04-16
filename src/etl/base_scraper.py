@@ -16,16 +16,16 @@ from typing import Optional
 
 from playwright.async_api import async_playwright, Page, BrowserContext, Browser
 
-from ..shared.config import get_settings
-from ..shared.constants import (
+from src.shared.config import get_settings
+from src.shared.constants import (
     PlatformConstants,
     ZoneConstants,
     RestaurantConstants,
     ScrapingConstants,
 )
-from ..shared.exceptions import ScraperException, ScraperLocationException
-from ..shared.utils import parse_price, parse_minutes
-from ..etl.models import DeliverySnapshot
+from src.shared.exceptions import ScraperException, ScraperLocationException
+from src.shared.utils import parse_price, parse_minutes
+from src.etl.models import DeliverySnapshot
 
 logger = logging.getLogger(__name__)
 

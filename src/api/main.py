@@ -9,7 +9,7 @@ from datetime import datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from ...shared.constants import APIConstants
+from src.shared.constants import APIConstants
 from .routes import (
     health_router,
     comparison_router,

@@ -10,13 +10,13 @@ import random
 
 from playwright.async_api import Page
 
-from ...shared.constants import (
+from src.shared.constants import (
     ScrapingConstants,
     RestaurantConstants,
 )
-from ...shared.utils import parse_minutes
-from ...etl.models import DeliverySnapshot
-from ...etl.base_scraper import BaseScraper
+from src.shared.utils import parse_minutes
+from src.etl.models import DeliverySnapshot
+from src.etl.base_scraper import BaseScraper
 
 logger = logging.getLogger(__name__)
 

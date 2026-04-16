@@ -13,7 +13,7 @@ from typing import Optional
 
 from psycopg2 import sql
 
-from ...shared.config import get_db_connection
+from src.shared.config import get_db_connection
 
 logger = logging.getLogger(__name__)
 
