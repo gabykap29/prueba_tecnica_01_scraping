@@ -4,9 +4,11 @@ import pytest
 
 from src.api.main import app
 from src.api.routes.analytics import get_summary
-from src.api.routes.comparison import compare_prices
+from src.api.routes.comparison import compare_prices, get_rankings
 from src.api.routes.health import health_check
 from src.api.routes import knowledge_base
+from src.ai_agent.agent import ai_agent
+from src.ai_agent.models import DeliveryPriceData
 
 
 def test_health_endpoint():
@@ -16,24 +18,88 @@ def test_health_endpoint():
 
 
 @pytest.mark.asyncio
-async def test_compare_endpoint_uses_dataset():
+async def test_compare_endpoint_uses_live_agent(monkeypatch):
+    async def fake_search_platform(restaurant, product, platform, location):
+        prices = {"rappi": 120, "ubereats": 110, "didi": 105}
+        return DeliveryPriceData(
+            platform=platform,
+            restaurant=restaurant,
+            product_name=product,
+            product_price=prices[platform],
+            delivery_fee=20,
+            service_fee=5,
+            estimated_time_min=30,
+            source_url=f"https://example.com/{platform}",
+            confidence=0.8,
+        )
+
+    monkeypatch.setattr(ai_agent, "_search_platform", fake_search_platform)
+
     payload = await compare_prices(product="Big Mac", zone="high", refresh=False)
 
     assert payload["product"] == "Big Mac"
+    assert payload["source_type"] == "live_agent"
+    assert payload["fallback_used"] is False
     assert len(payload["results"]) == 3
-    assert payload["best_option"] in {"rappi", "ubereats", "didi"}
-    assert payload["data_source"]["dataset_path"]
-    assert "live_records" in payload["data_source"]
-    assert "backup_records" in payload["data_source"]
-    assert payload["data_source"]["refresh_attempt"]["attempted"] is False
-    assert payload["freshness"]["status"] in {"live", "partial_live", "fallback_csv"}
+    assert len(payload["sources"]) == 3
+    assert payload["sources"][0]["url"].startswith("https://example.com/")
+    assert payload["best_option"] == "didi"
+    assert payload["plotly"]["data"]
+    assert payload["ai_response"]
 
 
-def test_summary_endpoint_returns_insights():
-    payload = get_summary()
+@pytest.mark.asyncio
+async def test_rankings_endpoint_uses_live_agent(monkeypatch):
+    async def fake_search_platform(restaurant, product, platform, location):
+        prices = {"rappi": 120, "ubereats": 110, "didi": 105}
+        return DeliveryPriceData(
+            platform=platform,
+            restaurant=restaurant,
+            product_name=product,
+            product_price=prices[platform],
+            delivery_fee=10 if platform == "didi" else 25,
+            service_fee=5,
+            estimated_time_min=30,
+            source_url=f"https://example.com/{platform}",
+            confidence=0.8,
+        )
 
-    assert payload["records"] == 240
-    assert len(payload["top_insights"]) == 5
+    monkeypatch.setattr(ai_agent, "_search_platform", fake_search_platform)
+
+    payload = await get_rankings(metric="delivery_fee", zone_type=None, limit=10)
+
+    assert payload["source_type"] == "live_agent"
+    assert payload["rankings"]
+    assert payload["sources"]
+    assert payload["rankings"][0]["platform"] == "didi"
+    assert payload["plotly"]["data"]
+
+
+@pytest.mark.asyncio
+async def test_summary_endpoint_returns_live_agent_insights(monkeypatch):
+    async def fake_search_platform(restaurant, product, platform, location):
+        prices = {"rappi": 120, "ubereats": 110, "didi": 105}
+        return DeliveryPriceData(
+            platform=platform,
+            restaurant=restaurant,
+            product_name=product,
+            product_price=prices[platform],
+            delivery_fee=10 if platform == "didi" else 25,
+            service_fee=5,
+            estimated_time_min=25 if platform == "ubereats" else 35,
+            source_url=f"https://example.com/{platform}",
+            confidence=0.8,
+        )
+
+    monkeypatch.setattr(ai_agent, "_search_platform", fake_search_platform)
+
+    payload = await get_summary()
+
+    assert payload["source_type"] == "live_agent"
+    assert payload["records"] == 6
+    assert payload["top_insights"]
+    assert payload["sources"]
+    assert payload["plotly"]["platform_costs"]["data"]
 
 
 def test_app_registers_competitive_routes():

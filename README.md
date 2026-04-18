@@ -12,27 +12,101 @@ Sistema de competitive intelligence para comparar Rappi contra Uber Eats y DiDi 
 
 El scraping real puede fallar por bloqueos, cambios de HTML o disponibilidad. Por eso el repositorio incluye `sample_data/competitive_snapshot.csv` como plan B para demo y evaluacion reproducible.
 
-## Setup
+## Instalación
+
+### 1. Clonar el repositorio
 
 ```bash
+git clone <repo-url>
+cd prueba_tec
+```
+
+### 2. Crear y activar entorno virtual
+
+```bash
+# Con Python
 python -m venv env
 .\env\Scripts\activate
-pip install -r requirements.txt
-playwright install chromium
-```
 
-Con `uv`:
-
-```bash
+# O con uv
 uv sync
-uv run playwright install chromium
 ```
 
-## Ejecutar API
+### 3. Instalar dependencias
 
 ```bash
-.\env\Scripts\python.exe run_api.py
+pip install -r requirements.txt
+
+# Instalar Playwright
+playwright install chromium
+
+# Instalar dependencias del proyecto
+pip install -e .
 ```
+
+### 4. Configurar variables de entorno
+
+Crear archivo `.env` en la raíz:
+
+```env
+# Base de datos (opcional)
+DATABASE_URL=postgresql://user:pass@localhost:5432/rappi_analytics
+
+# APIs Externas (opcional para OSINT)
+SERPAPI_API_KEY=your_serpapi_key
+GEMINI_API_KEY=your_gemini_key
+
+# Frontend
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
+```
+
+### 5. Instalar frontend
+
+```bash
+cd rappi-analytics-web
+npm install
+
+# Copiar logo de Rappi
+cp rappi-seeklogo.png public/rappi-logo.png
+```
+
+## Ejecución
+
+### 1. Iniciar Backend ( FastAPI)
+
+```bash
+python run_api.py
+```
+
+La API estará disponible en: `http://127.0.0.1:8000`
+
+Documentación Swagger: `http://127.0.0.1:8000/docs`
+
+### 2. Iniciar Frontend (Next.js)
+
+```bash
+cd rappi-analytics-web
+npm run dev
+```
+
+La aplicación estará disponible en: `http://localhost:3000`
+
+### 3. Verificar que todo funciona
+
+```bash
+# Health check
+curl http://127.0.0.1:8000/api/v1/health
+
+# Comparar precios
+curl "http://127.0.0.1:8000/api/v1/analytics/compare?product=Big%20Mac"
+
+# Chat con agente IA
+curl -X POST http://127.0.0.1:8000/api/v1/ai-agent/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "ayuda"}'
+```
+
+---
 
 Endpoints principales:
 

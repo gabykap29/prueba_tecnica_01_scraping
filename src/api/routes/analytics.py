@@ -1,24 +1,28 @@
-"""Analytics routes for the Rappi Analytics API."""
+"""Analytics routes backed by predefined chat-agent questions."""
 
 from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Query
 
-from src.analytics.competitive import (
-    compare_product,
-    eta_by_platform,
-    generate_summary,
-    load_current_competitive_data,
-    platform_averages,
-    promo_summary,
-)
+from src.ai_agent.agent import ai_agent
 
 router = APIRouter()
 
 
+async def _chat_data(message: str, conversation_id: str) -> dict:
+    result = await ai_agent.chat_once(message, conversation_id=conversation_id)
+    data = result.get("data") or {}
+    return {
+        **data,
+        "ai_response": result.get("response", ""),
+        "chat_states": result.get("states", []),
+        "timestamp": data.get("timestamp") or datetime.utcnow().isoformat(),
+    }
+
+
 @router.get("/prices")
-def get_prices(
+async def get_prices(
     zone_type: Optional[str] = Query(None, description="Zone type: high, mid, periphery"),
     start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
@@ -40,41 +44,16 @@ def get_prices(
         >>> response["avg_delivery_fee"]
         32.5
     """
-    records = load_current_competitive_data()
-    filtered = [
-        record
-        for record in records
-        if (not zone_type or record.zone_type == zone_type)
-        and (not restaurant or restaurant.lower() in record.restaurant.lower())
-    ]
-    averages = platform_averages(filtered)
-    avg_delivery_fee = (
-        round(sum(row["avg_delivery_fee"] for row in averages) / len(averages), 2)
-        if averages
-        else 0
+    dates = f" periodo {start_date or ''} {end_date or ''}" if start_date or end_date else ""
+    return await _chat_data(
+        f"precios{zone_type and f' zona {zone_type}' or ''}"
+        f"{restaurant and f' restaurante {restaurant}' or ''}{dates}",
+        "analytics-prices",
     )
-    avg_eta_min = (
-        round(sum(row["avg_eta_min"] for row in averages) / len(averages)) if averages else 0
-    )
-
-    return {
-        "zone_type": zone_type or "all",
-        "period": {
-            "start": start_date or min(record.scraped_at for record in records),
-            "end": end_date or max(record.scraped_at for record in records),
-        },
-        "restaurant": restaurant or "all",
-        "avg_delivery_fee": avg_delivery_fee,
-        "avg_eta_min": avg_eta_min,
-        "total_records": len(filtered),
-        "platform_averages": averages,
-        "top_promos": promo_summary(filtered),
-        "timestamp": datetime.utcnow().isoformat(),
-    }
 
 
 @router.get("/ETAs")
-def get_et_as(
+async def get_et_as(
     restaurant: str = Query(..., description="Restaurant name"),
     zone: Optional[str] = Query(None, description="Zone type: high, mid, periphery"),
 ):
@@ -92,18 +71,14 @@ def get_et_as(
         >>> len(response["ETAs"])
         3
     """
-    records = load_current_competitive_data()
-    etas = eta_by_platform(records, restaurant=restaurant)
-    return {
-        "restaurant": restaurant,
-        "zone": zone or "all",
-        "ETAs": etas,
-        "timestamp": datetime.utcnow().isoformat(),
-    }
+    return await _chat_data(
+        f"tiempos {restaurant}{zone and f' zona {zone}' or ''}",
+        "analytics-etas",
+    )
 
 
 @router.get("/trends")
-def get_trends(
+async def get_trends(
     product: str = Query(..., description="Product name"),
     zone: Optional[str] = Query(None, description="Zone type"),
     days: int = Query(7, ge=1, le=30, description="Number of days"),
@@ -123,22 +98,13 @@ def get_trends(
         >>> len(response["trends"])
         7
     """
-    records = load_current_competitive_data()
-    comparison = compare_product(product=product, zone_type=zone, records=records)
-    return {
-        "product": product,
-        "zone": zone or "all",
-        "days": days,
-        "note": "Single-snapshot backup data is available; multiple scheduled scrapes are needed for a real time series.",
-        "snapshot": comparison["results"],
-        "timestamp": datetime.utcnow().isoformat(),
-    }
+    return await _chat_data(
+        f"snapshot {product}{zone and f' zona {zone}' or ''} {days} dias",
+        "analytics-trends",
+    )
 
 
 @router.get("/summary")
-def get_summary():
+async def get_summary():
     """Get executive competitive intelligence summary."""
-    return {
-        **generate_summary(load_current_competitive_data()),
-        "timestamp": datetime.utcnow().isoformat(),
-    }
+    return await _chat_data("resumen ejecutivo", "analytics-summary")

@@ -42,27 +42,13 @@ async def chat(request: ChatMessageRequest) -> dict:
     Returns:
         Final response after processing all states
     """
-    states = []
-    async for state in ai_agent.chat_with_states(
+    result = await ai_agent.chat_once(
         message=request.message,
         conversation_id=request.conversation_id,
-    ):
-        states.append(state)
-
-    if not states:
+    )
+    if not result.get("states"):
         raise HTTPException(status_code=500, detail="No response from agent")
-
-    final_state = states[-1]
-
-    response_text = final_state.response_text or final_state.message or "Procesando tu solicitud..."
-
-    return {
-        "conversation_id": request.conversation_id,
-        "response": response_text,
-        "data": final_state.data,
-        "states": [s.model_dump() for s in states],
-        "timestamp": datetime.utcnow().isoformat(),
-    }
+    return result
 
 
 @router.post("/chat/stream")
@@ -212,7 +198,7 @@ async def health_check() -> dict:
     """Check AI agent health status."""
     import os
 
-    has_serpapi_key = bool(os.getenv("SERPAPI_API_KEY"))
+    has_serpapi_key = bool(os.getenv("SERPAPI_API_KEY") or os.getenv("SERAPI_API_KEY"))
     has_gemini_key = bool(os.getenv("GEMINI_API_KEY"))
 
     return {
