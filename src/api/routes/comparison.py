@@ -1,13 +1,11 @@
-"""Comparison routes for the Rappi Analytics API.
-
-This module provides endpoints for comparing prices across platforms,
-including price comparison, rankings, and best option detection.
-"""
+"""Comparison routes for the Rappi Analytics API."""
 
 from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Query
+
+from src.analytics.competitive import compare_product, generate_summary, load_competitive_data
 
 router = APIRouter()
 
@@ -35,37 +33,14 @@ def compare_prices(
         >>> response["best_option"]
         "ubereats"
     """
-    return {
-        "product": product,
-        "zone": zone or "all",
-        "period": {
-            "start": start_date or "2026-04-01",
-            "end": end_date or "2026-04-16",
-        },
-        "results": [
-            {
-                "platform": "ubereats",
-                "price": 149.0,
-                "delivery_fee": 29.0,
-                "total": 178.0,
-            },
-            {
-                "platform": "rappi",
-                "price": 145.0,
-                "delivery_fee": 35.0,
-                "total": 180.0,
-            },
-            {
-                "platform": "didi",
-                "price": 159.0,
-                "delivery_fee": 25.0,
-                "total": 184.0,
-            },
-        ],
-        "best_option": "ubereats",
-        "savings_vs_avg": 3.0,
-        "timestamp": datetime.utcnow().isoformat(),
+    records = load_competitive_data()
+    comparison = compare_product(product=product, zone_type=zone, records=records)
+    comparison["period"] = {
+        "start": start_date or min(record.scraped_at for record in records),
+        "end": end_date or max(record.scraped_at for record in records),
     }
+    comparison["timestamp"] = datetime.utcnow().isoformat()
+    return comparison
 
 
 @router.get("/rankings")
@@ -89,29 +64,30 @@ def get_rankings(
         >>> len(response["rankings"])
         3
     """
+    summary = generate_summary(load_competitive_data())
+    metric_key = {
+        "price": "avg_total_cost",
+        "eta": "avg_eta_min",
+        "delivery_fee": "avg_delivery_fee",
+        "service_fee": "avg_service_fee",
+    }.get(metric, "avg_total_cost")
+    zone_rows = [
+        row for row in summary["zones"] if not zone_type or row["zone_type"] == zone_type
+    ]
+    ranked = sorted(zone_rows, key=lambda row: row[metric_key])[:limit]
+
     return {
         "metric": metric,
         "zone_type": zone_type or "all",
         "limit": limit,
         "rankings": [
             {
-                "rank": 1,
-                "platform": "ubereats",
-                "restaurant": "McDonald's",
-                "metric_value": 178.0,
-            },
-            {
-                "rank": 2,
-                "platform": "rappi",
-                "restaurant": "McDonald's",
-                "metric_value": 180.0,
-            },
-            {
-                "rank": 3,
-                "platform": "didi",
-                "restaurant": "McDonald's",
-                "metric_value": 184.0,
-            },
+                "rank": index + 1,
+                "platform": row["platform"],
+                "zone_type": row["zone_type"],
+                "metric_value": row[metric_key],
+            }
+            for index, row in enumerate(ranked)
         ],
         "timestamp": datetime.utcnow().isoformat(),
     }

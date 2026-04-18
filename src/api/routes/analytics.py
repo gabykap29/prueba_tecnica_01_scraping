@@ -1,13 +1,18 @@
-"""Analytics routes for the Rappi Analytics API.
-
-This module provides endpoints for analytics and insights,
-including pricing statistics, delivery times, and trend analysis.
-"""
+"""Analytics routes for the Rappi Analytics API."""
 
 from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Query
+
+from src.analytics.competitive import (
+    compare_product,
+    eta_by_platform,
+    generate_summary,
+    load_competitive_data,
+    platform_averages,
+    promo_summary,
+)
 
 router = APIRouter()
 
@@ -35,33 +40,35 @@ def get_prices(
         >>> response["avg_delivery_fee"]
         32.5
     """
+    records = load_competitive_data()
+    filtered = [
+        record
+        for record in records
+        if (not zone_type or record.zone_type == zone_type)
+        and (not restaurant or restaurant.lower() in record.restaurant.lower())
+    ]
+    averages = platform_averages(filtered)
+    avg_delivery_fee = (
+        round(sum(row["avg_delivery_fee"] for row in averages) / len(averages), 2)
+        if averages
+        else 0
+    )
+    avg_eta_min = (
+        round(sum(row["avg_eta_min"] for row in averages) / len(averages)) if averages else 0
+    )
+
     return {
         "zone_type": zone_type or "all",
         "period": {
-            "start": start_date or "2026-04-01",
-            "end": end_date or "2026-04-16",
+            "start": start_date or min(record.scraped_at for record in records),
+            "end": end_date or max(record.scraped_at for record in records),
         },
         "restaurant": restaurant or "all",
-        "avg_delivery_fee": 32.5,
-        "avg_eta_min": 28,
-        "total_records": 156,
-        "top_promos": [
-            {
-                "platform": "ubereats",
-                "promo": "20% off",
-                "count": 12,
-            },
-            {
-                "platform": "rappi",
-                "promo": "15% off",
-                "count": 8,
-            },
-            {
-                "platform": "didi",
-                "promo": "free delivery",
-                "count": 5,
-            },
-        ],
+        "avg_delivery_fee": avg_delivery_fee,
+        "avg_eta_min": avg_eta_min,
+        "total_records": len(filtered),
+        "platform_averages": averages,
+        "top_promos": promo_summary(filtered),
         "timestamp": datetime.utcnow().isoformat(),
     }
 
@@ -85,29 +92,12 @@ def get_et_as(
         >>> len(response["ETAs"])
         3
     """
+    records = load_competitive_data()
+    etas = eta_by_platform(records, restaurant=restaurant)
     return {
         "restaurant": restaurant,
         "zone": zone or "all",
-        "ETAs": [
-            {
-                "platform": "ubereats",
-                "avg_min": 25,
-                "min": 20,
-                "max": 35,
-            },
-            {
-                "platform": "rappi",
-                "avg_min": 30,
-                "min": 22,
-                "max": 45,
-            },
-            {
-                "platform": "didi",
-                "avg_min": 28,
-                "min": 18,
-                "max": 40,
-            },
-        ],
+        "ETAs": etas,
         "timestamp": datetime.utcnow().isoformat(),
     }
 
@@ -133,29 +123,22 @@ def get_trends(
         >>> len(response["trends"])
         7
     """
+    records = load_competitive_data()
+    comparison = compare_product(product=product, zone_type=zone, records=records)
     return {
         "product": product,
         "zone": zone or "all",
         "days": days,
-        "trends": [
-            {
-                "date": "2026-04-10",
-                "ubereats": 178.0,
-                "rappi": 180.0,
-                "didi": 184.0,
-            },
-            {
-                "date": "2026-04-11",
-                "ubereats": 175.0,
-                "rappi": 182.0,
-                "didi": 180.0,
-            },
-            {
-                "date": "2026-04-12",
-                "ubereats": 178.0,
-                "rappi": 178.0,
-                "didi": 182.0,
-            },
-        ],
+        "note": "Single-snapshot backup data is available; multiple scheduled scrapes are needed for a real time series.",
+        "snapshot": comparison["results"],
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+
+
+@router.get("/summary")
+def get_summary():
+    """Get executive competitive intelligence summary."""
+    return {
+        **generate_summary(load_competitive_data()),
         "timestamp": datetime.utcnow().isoformat(),
     }
