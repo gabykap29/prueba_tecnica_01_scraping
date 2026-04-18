@@ -2,6 +2,9 @@
 
 Sistema de competitive intelligence para comparar Rappi contra Uber Eats y DiDi Food en Mexico usando scraping, datos de respaldo reproducibles, API analitica y reporte ejecutivo.
 
+**Repositorio Backend**: https://github.com/gabykap29/prueba_tecnica_01_scraping.git
+**Repositorio Frontend**: https://github.com/gabykap29/prueba_tecnica_scraping_01_client.git
+
 ## Demo
 
 ### Video de demostración
