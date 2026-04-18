@@ -14,6 +14,8 @@ from .routes import (
     health_router,
     comparison_router,
     analytics_router,
+    knowledge_base_router,
+    ai_agent_router,
 )
 
 app = FastAPI(
@@ -44,6 +46,16 @@ app.include_router(
     analytics_router,
     prefix=f"{APIConstants.API_PREFIX}/analytics",
     tags=["analytics"],
+)
+app.include_router(
+    knowledge_base_router,
+    prefix=APIConstants.API_PREFIX,
+    tags=["knowledge_base"],
+)
+app.include_router(
+    ai_agent_router,
+    prefix=APIConstants.API_PREFIX,
+    tags=["ai-agent"],
 )
 
 

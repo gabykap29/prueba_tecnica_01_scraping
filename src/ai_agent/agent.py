@@ -202,22 +202,26 @@ class DeliveryAIAgent:
             )
 
             action_result = await self._execute_predefined_action(action_key, query_info)
+            response_msg = (
+                action_result.get("message", "Accion completada")
+                if action_result
+                else "Accion completada"
+            )
 
             yield AgentState(
                 status=AgentStatus.COMPLETED.value,
-                message=action_result.get("message", "Accion completada")
-                if action_result
-                else "Accion completada",
+                message=response_msg,
                 progress=100,
                 data=action_result,
+                response_text=response_msg,
             )
             return
 
+        product_name = query_info.get("product") or "el producto"
+
         yield AgentState(
             status=AgentStatus.SEARCHING.value,
-            message="Buscando informacion sobre "
-            + query_info.get("product", "el producto")
-            + "...",
+            message=f"Buscando informacion sobre {product_name}...",
             progress=30,
             metadata=query_info,
         )
@@ -229,7 +233,7 @@ class DeliveryAIAgent:
             progress = 30 + (i * 15)
             yield AgentState(
                 status=AgentStatus.SEARCHING.value,
-                message="Buscando en " + platform + "...",
+                message=f"Buscando en {platform}...",
                 progress=progress,
             )
 
@@ -417,16 +421,54 @@ class DeliveryAIAgent:
     async def _action_compare(self, query_info) -> dict:
         from src.analytics.competitive import compare_product, load_current_competitive_data
 
-        product = query_info.get("product", "Big Mac")
+        search_term = query_info.get("raw_message", "").replace("comparar ", "").strip()
+        product = search_term if search_term else "Big Mac"
+
         records = load_current_competitive_data()
         comparison = compare_product(product=product, records=records)
+
+        results = comparison.get("results", [])
+        best_option = comparison.get("best_option", "N/A")
+
+        if results:
+            lines = [
+                "=== ANALISIS COMPARATIVO ===",
+                f"Producto: {product}",
+                "",
+                "Plataforma | Precio | Delivery | Servicio | Total",
+                "-" * 55,
+            ]
+
+            prices = []
+            for r in results:
+                p = r.get("avg_product_price", 0) or 0
+                d = r.get("avg_delivery_fee", 0) or 0
+                s = r.get("avg_service_fee", 0) or 0
+                t = r.get("avg_total_cost", 0) or 0
+                prices.append(t)
+                plat = r.get("platform", "N/A").upper().ljust(10)
+                lines.append(f"{plat}   ${p:>4.0f}   ${d:>3.0f}   ${s:>3.0f}   ${t:>4.0f}")
+
+            lines.append("-" * 55)
+            lines.append(
+                f"Me{'jor':>12}  {best_option.upper():<10}  ${min(prices):>4.0f}" if prices else ""
+            )
+            lines.append(
+                f"Diferencia vs promedio: ${max(prices) - min(prices):.0f} MXN"
+                if len(prices) > 1
+                else ""
+            )
+
+            message = "\n".join(lines)
+        else:
+            message = f"No hay datos para {product}"
 
         return {
             "action": "compare",
             "product": product,
-            "results": comparison.get("results", []),
-            "best_option": comparison.get("best_option"),
-            "message": f"Comparacion de {product} completada",
+            "results": results,
+            "best_option": best_option,
+            "message": message,
         }
 
     async def _action_summary(self, query_info) -> dict:
@@ -579,52 +621,6 @@ class DeliveryAIAgent:
             "is_predefined": False,
         }
 
-    async def _search_platform(self, restaurant, product, platform, location):
-
-        all_results = []
-        for term in search_terms:
-            result = search_serpapi(term, location)
-            if "organic_results" in result:
-                all_results.extend(result["organic_results"])
-
-        data = DeliveryPriceData(
-            platform=platform,
-            restaurant=restaurant,
-            product_name=product,
-        )
-
-        prices = []
-        times = []
-        urls = []
-
-        for result in all_results:
-            snippet = result.get("snippet", "")
-            title = result.get("title", "")
-            url = result.get("link", "")
-
-            if url:
-                urls.append(url)
-
-            price = extract_price_from_snippet(snippet) or extract_price_from_snippet(title)
-            if price and 20 < price < 500:
-                prices.append(price)
-
-            time = extract_time_from_snippet(snippet)
-            if time and 10 < time < 120:
-                times.append(time)
-
-        if prices:
-            data.product_price = min(prices)
-            data.confidence = 0.7 if len(prices) > 1 else 0.5
-
-        if times:
-            data.estimated_time_min = int(sum(times) / len(times))
-
-        if urls:
-            data.source_url = urls[0]
-
-        return data
-
     def _build_comparison(self, results):
         if not results:
             return None
@@ -647,29 +643,55 @@ class DeliveryAIAgent:
 
     def _generate_response(self, query, results, comparison):
         if not results:
-            return "Lo siento, no pude encontrar informacion sobre eso. Intenta con otro producto o restaurante?"
-
-        if len(results) == 1:
-            r = results[0]
-            return (
-                f"Encontre informacion sobre {r.product_name} de {r.restaurant} en {r.platform}: "
-                f"precio ${r.product_price} MXN. "
-                f"Tiempo estimado: {r.estimated_time_min or 'N/A'} minutos."
-            )
+            return "No se encontraron datos. Intenta con otro producto o restaurante."
 
         if comparison:
             best = comparison["best_platform"]
             price = comparison["best_price"]
-            return (
-                f"Compare {len(results)} plataformas para ti. "
-                f"La mejor opcion es **{best}** con ${price} MXN. "
-                f"Rango de precios: ${comparison['price_range']['min']:.0f} - "
-                f"${comparison['price_range']['max']:.0f} MXN."
+            range_min = comparison["price_range"]["min"]
+            range_max = comparison["price_range"]["max"]
+
+            lines = [
+                "=== COMPARATIVA DE PRECIOS ===",
+                f"Producto: {results[0].product_name}",
+                "",
+                "PLATAFORMA | PRECIO | SERVICIO | Total",
+                "-" * 45,
+            ]
+
+            for r in results:
+                p = r.product_price or 0
+                d = r.delivery_fee or 0
+                s = r.service_fee or 0
+                total = p + d + s
+                platform = r.platform.upper().ljust(10)
+                lines.append(f"{platform} | ${p:.0f} | $${d:.0f}+${s:.0f} | ${total:.0f}")
+
+            lines.extend(
+                [
+                    "-" * 45,
+                    f"Mejor option: {best.upper()} (${price:.0f} MXN)",
+                    f"Rango: ${range_min:.0f} - ${range_max:.0f} MXN",
+                    "",
+                    f"Whopper: ${range_max - price:.0f} MXN vs mejor option",
+                ]
             )
 
-        return (
-            f"Encontre informacion en {len(results)} plataformas. Puedes ver los detalles arriba."
-        )
+            return "\n".join(lines)
+
+        if len(results) == 1:
+            r = results[0]
+            total = (r.product_price or 0) + (r.delivery_fee or 0) + (r.service_fee or 0)
+            return (
+                f"[{r.platform.upper()}]\n"
+                f"Producto: {r.product_name}\n"
+                f"Precio producto: ${r.product_price or 'N/A'}\n"
+                f"Delivery: ${r.delivery_fee or 0} | Servicio: ${r.service_fee or 0}\n"
+                f"Costo total: ${total:.0f} MXN\n"
+                f"Tiempo entrega: {r.estimated_time_min or 'N/A'} min"
+            )
+
+        return f"Datos obtenidos de {len(results)} plataformas."
 
     def get_conversation_history(self, conversation_id="default"):
         return self._conversations.get(conversation_id, [])

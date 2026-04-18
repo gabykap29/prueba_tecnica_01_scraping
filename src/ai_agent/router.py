@@ -26,6 +26,7 @@ router = APIRouter(prefix="/ai-agent", tags=["ai-agent"])
 
 class ChatMessageRequest(BaseModel):
     """Simple chat message request."""
+
     message: str
     conversation_id: Optional[str] = "default"
 
@@ -33,11 +34,11 @@ class ChatMessageRequest(BaseModel):
 @router.post("/chat")
 async def chat(request: ChatMessageRequest) -> dict:
     """Simple chat endpoint without streaming.
-    
+
     Args:
         message: User message
         conversation_id: Optional conversation ID for context
-        
+
     Returns:
         Final response after processing all states
     """
@@ -47,15 +48,17 @@ async def chat(request: ChatMessageRequest) -> dict:
         conversation_id=request.conversation_id,
     ):
         states.append(state)
-    
+
     if not states:
         raise HTTPException(status_code=500, detail="No response from agent")
-    
+
     final_state = states[-1]
-    
+
+    response_text = final_state.response_text or final_state.message or "Procesando tu solicitud..."
+
     return {
         "conversation_id": request.conversation_id,
-        "response": final_state.response_text,
+        "response": response_text,
         "data": final_state.data,
         "states": [s.model_dump() for s in states],
         "timestamp": datetime.utcnow().isoformat(),
@@ -65,7 +68,7 @@ async def chat(request: ChatMessageRequest) -> dict:
 @router.post("/chat/stream")
 async def chat_stream(request: ChatMessageRequest):
     """Chat endpoint with Server-Sent Events streaming.
-    
+
     Streams AgentState objects as the agent processes the request:
     - understanding: Analizando tu consulta...
     - searching: Buscando en [platform]...
@@ -73,7 +76,7 @@ async def chat_stream(request: ChatMessageRequest):
     - validating: Validando informacion...
     - comparing: Comparando opciones...
     - completed: Listo!
-    
+
     Example usage with JavaScript:
     ```javascript
     const eventSource = new EventSource('/api/v1/ai-agent/chat/stream?message=Big Mac');
@@ -83,13 +86,14 @@ async def chat_stream(request: ChatMessageRequest):
     };
     ```
     """
+
     async def generate_states():
         async for state in ai_agent.chat_with_states(
             message=request.message,
             conversation_id=request.conversation_id,
         ):
             yield f"data: {json.dumps(state.model_dump(), ensure_ascii=False)}\n\n"
-    
+
     return StreamingResponse(
         generate_states(),
         media_type="text/event-stream",
@@ -107,9 +111,10 @@ async def chat_stream_get(
     conversation_id: str = Query(default="default", description="Conversation ID"),
 ):
     """Chat streaming via GET request (for easier testing in browser).
-    
+
     Usage: /api/v1/ai-agent/chat/stream?message=Big%20Mac
     """
+
     async def generate_states():
         async for state in ai_agent.chat_with_states(
             message=message,
@@ -117,7 +122,7 @@ async def chat_stream_get(
         ):
             yield f"data: {json.dumps(state.model_dump(), ensure_ascii=False)}\n\n"
         yield "data: [DONE]\n\n"
-    
+
     return StreamingResponse(
         generate_states(),
         media_type="text/event-stream",

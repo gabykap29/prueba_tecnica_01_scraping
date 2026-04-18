@@ -13,6 +13,10 @@ import os
 from dataclasses import dataclass, field
 from functools import lru_cache
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 @dataclass(frozen=True)
 class Settings:
@@ -25,6 +29,7 @@ class Settings:
         LOG_LEVEL: Logging level (DEBUG, INFO, WARNING, ERROR)
         SCRAPER_DELAY_MIN: Minimum delay between scraper requests (seconds)
         SCRAPER_DELAY_MAX: Maximum delay between scraper requests (seconds)
+        SERPAPI_API_KEY: Optional SerpApi key for Google OSINT discovery
         USER_AGENTS: List of user agent strings for web scraping
     """
 
@@ -41,6 +46,11 @@ class Settings:
     )
     SCRAPER_DELAY_MAX: float = field(
         default_factory=lambda: float(os.getenv("SCRAPER_DELAY_MAX", "6.0"))
+    )
+    SERPAPI_API_KEY: str = field(
+        default_factory=lambda: (
+            os.getenv("SERPAPI_API_KEY", "") or os.getenv("SERAPI_API_KEY", "")
+        ).strip()
     )
     USER_AGENTS: tuple = field(
         default_factory=lambda: (

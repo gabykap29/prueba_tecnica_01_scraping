@@ -1,0 +1,444 @@
+--- Página 1 ---
+Caso  Técnico:  Sistema  de  Competitive  
+Intelligence
+ 
+para
+ 
+Rappi
+ 
+Rol:  AI  Engineer  Tiempo  para  la  entrega:  2  días  calendario  Formato  de  presentación:  30  minutos  (20  min  presentación  +  10  min  Q&A)  
+ 
+ 1.  Contexto  del  Problema  
+Rappi  compite  en  un  mercado  altamente  dinámico  con  jugadores  como  Uber  Eats,  DiDi  
+Food,
+ 
+PedidosYa,
+ 
+iFood,
+ 
+Cornershop,
+ 
+y
+ 
+otros
+ 
+operadores
+ 
+locales.
+ 
+Los
+ 
+precios,
+ 
+tiempos
+ 
+de
+ 
+entrega
+ 
+y
+ 
+fees
+ 
+cambian
+ 
+constantemente
+ 
+basados
+ 
+en:
+ 
+●  Promociones  y  descuentos  dinámicos  ●  Disponibilidad  de  repartidores  ●  Demanda  en  tiempo  real  ●  Estrategias  competitivas  por  zona   Actualmente,  no  tenemos  visibilidad  sistemática  de  cómo  nos  comparamos  con  la  
+competencia
+ 
+en
+ 
+estas
+ 
+variables
+ 
+críticas.
+ 
+Los
+ 
+equipos
+ 
+de
+ 
+Pricing,
+ 
+Operations
+ 
+y
+ 
+Strategy
+ 
+toman
+ 
+decisiones
+ 
+sin
+ 
+datos
+ 
+actualizados
+ 
+sobre:
+ 
+●  ¿Somos  más  caros  o  baratos  que  la  competencia  en  cada  zona?  ●  ¿Nuestros  tiempos  de  entrega  son  competitivos?  ●  ¿Cómo  se  comparan  nuestros  service  ●  fees?  ●  ¿Qué  promociones  está  corriendo  la  competencia?   Tu  misión  es  construir  un  sistema  automatizado  que  recolecte  datos  de  la  competencia  y  
+genere
+ 
+insights
+ 
+accionables
+ 
+para
+ 
+la
+ 
+toma
+ 
+de
+ 
+decisiones
+ 
+estratégicas.
+ 
+ 
+ 2.  Entregables  Requeridos  
+2.1  Sistema  de  Scraping  Competitivo  (70%  del  peso)  
+Desarrolla  un  sistema  que  recolecta  datos  de  al  menos  2  competidores  (además  de  Rappi)  
+en
+ 
+20-50
+ 
+direcciones
+ 
+representativas
+.
+ 
+Requisitos  mínimos:  
+
+
+--- Página 2 ---
+✅  
+Recolección
+ 
+de
+ 
+datos
+ 
+de
+ 
+las
+ 
+siguientes
+ 
+plataformas
+ 
+en
+ 
+México
+:
+ 
+●  Rappi  (para  baseline  propio)  ●  Uber  Eats  ●  DiDi  Food  
+✅  
+Métricas
+ 
+a
+ 
+recolectar
+ 
+(mínimo
+ 
+3
+ 
+de
+ 
+las
+ 
+siguientes):
+ 
+●  Precio  del  producto:  Precio  de  3-5  ítems  comparables  (ej:  Big  Mac,  Combo  McDonald's,  Coca-Cola  500ml)  ●  Delivery  Fee:  Costo  de  envío  antes  de  descuentos  ●  Service  Fee:  Comisión  de  la  plataforma  ●  Tiempo  estimado  de  entrega:  Promedio  o  rango  mostrado  al  usuario  ●  Descuentos  activos:  Promociones,  cupones,  ofertas  visibles  ●  Disponibilidad:  Restaurantes/tiendas  disponibles  vs  cerrados  ●  Precio  final  total:  Precio  que  realmente  paga  el  usuario  
+✅  
+Cobertura
+ 
+geográfica:
+ 
+●  Selecciona  20-50  direcciones  representativas  que  cubran  diferentes  tipos  de  zonas.  ●  Documenta  claramente  las  direcciones  elegidas  y  la  justificación  
+✅  
+Automatización:
+ 
+●  El  sistema  debe  poder  ejecutarse  con  un  comando/script  ●  Output:  CSV  o  JSON  con  los  datos  recolectados   Bonus  (no  obligatorio):   ●  Scraping  de  múltiples  verticales  (restaurantes  +  retail  +  pharmacy)  ●  Comparación  de  mismo  restaurante  en  diferentes  plataformas  ●  Capturas  autmaticas  de  pantalla  como  evidencia  
+ 
+ 2.2  Informe  de  Insights  Competitivos  (30%  del  peso)  
+Genera  un  informe  analítico  con  hallazgos  accionables  basados  en  los  datos  recolectados.   Requisitos  mínimos:  
+✅  
+Análisis
+ 
+comparativo
+ 
+estructurado:
+ 
+●  Posicionamiento  de  precios:  ¿Dónde  está  Rappi  vs  competencia?  (más  caro,  más  barato,  similar)  ●  Ventaja/desventaja  operacional:  Tiempos  de  entrega  comparados  ●  Estructura  de  fees:  Cómo  se  comparan  delivery  fees  y  service  fees  ●  Estrategia  promocional:  Qué  tipo  de  descuentos  está  usando  cada  competidor  ●  Variabilidad  geográfica:  ¿La  competitividad  varía  por  zona?  
+
+
+--- Página 3 ---
+✅  
+Top
+ 
+5
+ 
+Insights
+ 
+Accionables:
+ 
+Cada
+ 
+insight
+ 
+debe
+ 
+incluir:
+ 
+●  Finding:  ¿Qué  descubriste?  ●  Impacto:  ¿Por  qué  es  importante?  ●  Recomendación:  ¿Qué  debería  hacer  Rappi?   Ejemplo:   Finding:  Uber  Eats  tiene  delivery  fees  40%  más  bajos  en  zonas  periféricas  Impacto:  Estamos  perdiendo  competitividad  en  zonas  de  expansión  Recomendación:  Considerar  subsidiar  delivery  fee  en  zonas  prioritarias  X,  Y,  Z.  
+✅  
+Visualizaciones
+ 
+claras:
+ 
+●  Al  menos  3  gráficos  que  soporten  tus  insights  ●  Comparaciones  directas  (barras,  tablas,  heatmaps)  
+✅  
+Formato:
+ 
+●  Documento  ejecutivo  (PDF,  PowerPoint,  Notion,  o  dashboard  interactivo)  ●  Debe  ser  accionable  para  equipos  de  Strategy  y  Pricing   Bonus  (no  obligatorio):   ●  Dashboard  interactivo  (Streamlit,  Tableau,  Power  BI)  ●  Análisis  de  tendencias  temporales  (si  hiciste  múltiples  scrapes)  
+ 
+ 3.  Scope  y  Limitaciones  
+Dada  la  complejidad  del  scraping  y  el  tiempo  limitado,  define  un  scope  realista:   
+Productos  de  Referencia  
+Para  comparar  precios  consistentemente,  usa  productos  estandarizados:   Fast  Food:   ●  Big  Mac  o  Whopper  ●  Combo  mediano  (hamburguesa  +  papas  +  bebida)  ●  Nuggets  (6  o  10  piezas)   Retail:   ●  Coca-Cola  500ml  ●  Agua  embotellada  1L  ●  Paquete  de  pañales  (marca  reconocida)  
+
+
+--- Página 4 ---
+ 
+ 4.  Requisitos  Técnicos  
+Stack  Tecnológico  
+Libertad  total  de  herramientas:   ●  Scraping:  Selenium,  Playwright,  Puppeteer,  BeautifulSoup,  Scrapy,  APIs  no  oficiales  ●  Proxies/anti-detection:  Si  es  necesario  (Bright  Data,  ScraperAPI,  proxies  rotativos)  ●  Automatización:  Cron  jobs,  GitHub  Actions,  Airflow,  Make,  n8n  ●  Análisis:  Python  (pandas,  matplotlib),  R,  JavaScript,  notebooks  ●  Dashboards:  Streamlit,  Plotly  Dash,  Tableau,  Power  BI,  Metabase   Consideraciones:   ●  Si  usas  servicios  pagos  (proxies,  APIs),  documenta  costos  ●  El  scraping  debe  ser  reproducible  por  el  equipo  evaluador   
+Código  y  Reproducibilidad  
+✅  
+Incluye
+ 
+un
+ 
+README
+ 
+con:
+ 
+●  Instrucciones  de  setup  (dependencias,  API  keys,  configuración)  ●  Cómo  ejecutar  el  scraper  ●  Cómo  generar  el  informe  ●  Limitaciones  conocidas  
+✅  
+Output
+ 
+estructurado:
+ 
+●  CSV/JSON  con  los  datos  raw  recolectados  ●  Informe  final  (PDF,  HTML,  o  link  a  dashboard)  
+✅  
+Ética
+ 
+y
+ 
+legalidad:
+ 
+●  Respeta  los  robots.txt  cuando  sea  posible  ●  No  sobrecargues  los  servidores  (rate  limiting  razonable)  ●  Usa  User-Agents  apropiados  ●  Documenta  cualquier  consideración  ética  en  tu  approach   
+Buenas  Prácticas  (valoradas  pero  no  obligatorias)  
+●  Rate  limiting  y  delays  para  no  saturar  servidores  ●  Logging  de  errores  y  scraping  exitoso  ●  Retry  logic  para  fallos  temporales  ●  Código  modular  y  reutilizable  ●  Tests  básicos  (si  aplica)  
+
+
+--- Página 5 ---
+ 
+ 5.  Criterios  de  Evaluación  
+Tu  solución  será  evaluada  según  la  siguiente  rúbrica  (100  puntos):   Criterio  Pes  o  
+Qué  evaluamos  
+Calidad  del  Scraping  
+50%  Completitud  de  datos,  manejo  de  errores,  robustez  del  sistema  
+Calidad  de  Insights  15%  Relevancia,  profundidad,  accionabilidad  de  hallazgos  
+Diseño  Técnico  10%  Arquitectura,  elección  de  herramientas,  escalabilidad  
+Documentación  5%  Claridad  de  instrucciones,  reproducibilidad  
+Presentación  20%  Claridad  en  la  demo  y  comunicación  de  findings   
+Lo  que  buscamos  en  un  candidato  excepcional:  
+●  Pragmatismo:  Scope  bien  definido  vs  querer  scrapear  todo  el  universo  ●  Pensamiento  estratégico:  Insights  que  realmente  mueven  la  aguja  del  negocio  ●  Resiliencia  técnica:  Manejo  de  casos  edge  (productos  no  disponibles,  sitios  bloqueados,  etc.)  ●  Business  acumen:  Entender  qué  métricas  importan  y  por  qué  
+ 
+ 6.  Formato  de  Entrega  
+Repositorio  
+Sube  tu  solución  a  un  repositorio  Git  (GitHub,  GitLab,  etc.)  y  comparte  el  link.  Asegúrate  de  que  sea  público  o  danos  acceso.   
+Presentación  (30  minutos)  
+Estructura  sugerida:   1.  Approach  y  scope  (3  min):  ¿Qué  decidiste  scrapear  y  por  qué?  2.  Demo  del  sistema  (7  min):  Ejecuta  el  scraper  en  vivo  (o  muestra  grabación  si  hay  riesgo  de  bloqueos)  3.  Datos  recolectados  (3  min):  Overview  de  la  data  obtenida  4.  Top  5  Insights  (10  min):  Presenta  tus  hallazgos  clave  con  visualizaciones  5.  Decisiones  técnicas  (4  min):  Desafíos  enfrentados,  soluciones  implementadas  
+
+
+--- Página 6 ---
+6.  Limitaciones  y  next  steps  (3  min):  ¿Qué  mejorarías  con  más  tiempo?  7.  Q&A  (10  min)   Nota:  Si  el  scraping  en  vivo  es  arriesgado  (puede  fallar),  trae  datos  pre-scrapeados  como  backup.  
+ 
+ 7.  Preguntas  Frecuentes  
+¿Puedo  usar  APIs  no  oficiales  o  reverse-engineered?  Sí,  si  es  más  eficiente  que  scrapear  HTML.  Documenta  tu  approach.   ¿Qué  pasa  si  me  bloquean  durante  el  scraping?  Es  parte  del  desafío.  Implementa  estrategias  (proxies,  rate  limiting,  headers)  y  documenta  las  limitaciones.  No  te  penalizaremos  por  bloqueos  si  tu  diseño  es  sólido.  
+¿Debo  scrapear  en  tiempo  real  durante  la  presentación?  Recomendamos  tener  datos  pre-scrapeados  como  backup.  Si  quieres  hacer  live  demo,  perfecto,  pero  ten  un  plan  B.  
+¿Necesito  scrapear  TODOS  los  competidores?  No.  2  competidores  +  Rappi  es  suficiente.  Prioriza  calidad  sobre  cantidad.   ¿Puedo  usar  servicios  pagos  de  scraping  (Bright  Data,  ScraperAPI)?  Sí,  pero  documenta  los  costos.  Soluciones  cost-effective  son  más  valoradas.   ¿Qué  pasa  si  algunos  datos  no  están  disponibles?  Documenta  qué  pudiste  y  no  pudiste  obtener.  Explica  los  blockers  en  tu  presentación.   ¿Es  legal  hacer  scraping?  El  scraping  de  datos  públicos  generalmente  es  legal  para  fines  de  análisis  competitivo,  pero  debes  respetar  términos  de  servicio  y  no  sobrecargar  servidores.  Investiga  las  implicaciones  legales  en  tu  jurisdicción.  
+ 
+ 8.  Consejos  Finales  
+
+
+--- Página 7 ---
+✨  
+Define
+ 
+un
+ 
+scope
+ 
+alcanzable:
+ 
+Mejor
+ 
+5
+ 
+direcciones
+ 
+bien
+ 
+scrapeadas
+ 
+que
+ 
+50
+ 
+a
+ 
+medias
+ 
+✨  
+Prioriza
+ 
+robustez:
+ 
+El
+ 
+scraping
+ 
+falla.
+ 
+Diseña
+ 
+con
+ 
+eso
+ 
+en
+ 
+mente
+ 
+✨  
+Piensa
+ 
+como
+ 
+strategist:
+ 
+Los
+ 
+insights
+ 
+son
+ 
+más
+ 
+importantes
+ 
+que
+ 
+la
+ 
+cantidad
+ 
+de
+ 
+datos
+ 
+✨  
+Documenta
+ 
+blockers:
+ 
+Si
+ 
+algo
+ 
+no
+ 
+funciona,
+ 
+explica
+ 
+por
+ 
+qué
+ 
+y
+ 
+qué
+ 
+intentaste
+ 
+✨  
+Ten
+ 
+un
+ 
+plan
+ 
+B:
+ 
+Sitios
+ 
+pueden
+ 
+estar
+ 
+caídos
+ 
+el
+ 
+día
+ 
+de
+ 
+tu
+ 
+demo
+ 
+✨  
+Empieza
+ 
+simple:
+ 
+Un
+ 
+producto
+ 
+en
+ 
+3
+ 
+direcciones
+ 
+bien
+ 
+comparado
+ 
+>
+ 
+10
+ 
+productos
+ superficialmente   Consideración  ética:  Este  ejercicio  es  para  fines  de  reclutamiento.  En  un  escenario  real,  consulta  con  Legal  antes  de  implementar  scraping  sistemático.  
+¡Mucha  suerte!  Queremos  ver  tu  capacidad  de  resolver  problemas  reales  con  constraints  realistas.  
+  Nota:  Este  caso  evalúa  tu  capacidad  de  extraer  inteligencia  competitiva  de  fuentes  públicas.  El  scraping  debe  realizarse  de  manera  ética  y  responsable.  
+
+

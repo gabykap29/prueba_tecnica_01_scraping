@@ -17,6 +17,7 @@ from src.shared.constants import (
 )
 from src.shared.utils import parse_minutes
 from src.shared.platform_urls import build_ubereats_search_url
+from src.etl.osint_discovery import discover_indexed_store_url, open_indexed_store_page
 from src.etl.models import DeliverySnapshot
 from src.etl.base_scraper import BaseScraper
 
@@ -74,8 +75,11 @@ class UberEatsScraper(BaseScraper):
             return True
 
         except Exception as e:
-            logger.warning(f"Failed to set location {address}: {e}")
-            return False
+            logger.warning(
+                "Failed to set Uber Eats location through UI; "
+                f"continuing with OSINT discovery for {address}: {e}"
+            )
+            return True
 
     async def search_restaurant(self, page: Page, restaurant_name: str) -> bool:
         """Search for a restaurant on Uber Eats.
@@ -88,14 +92,24 @@ class UberEatsScraper(BaseScraper):
             True if search was successful
         """
         try:
-            search_url = build_ubereats_search_url(
+            discovery = await discover_indexed_store_url(
+                platform=self.PLATFORM_NAME,
+                restaurant=restaurant_name,
+                address="CDMX",
+            )
+            search_url = discovery.url or build_ubereats_search_url(
                 query=restaurant_name,
                 address="CDMX",
             )
-            await page.goto(
-                search_url, wait_until="networkidle", timeout=ScrapingConstants.PAGE_LOAD_TIMEOUT
-            )
-            await page.wait_for_timeout(random.randint(2000, 3500))
+            if discovery.url:
+                await open_indexed_store_page(page, search_url)
+            else:
+                await page.goto(
+                    search_url,
+                    wait_until="networkidle",
+                    timeout=ScrapingConstants.PAGE_LOAD_TIMEOUT,
+                )
+                await page.wait_for_timeout(random.randint(2000, 3500))
             return True
 
         except Exception as e:
@@ -129,12 +143,14 @@ class UberEatsScraper(BaseScraper):
             restaurant_cards = page.locator("[data-testid='store-card'], [class*='RestaurantCard']")
             count = await restaurant_cards.count()
 
-            if count == 0:
-                logger.warning(f"No results for {restaurant_name}")
-                return snapshots
-
-            await restaurant_cards.first.click()
-            await page.wait_for_timeout(random.randint(2500, 4000))
+            if count > 0:
+                await restaurant_cards.first.click()
+                await page.wait_for_timeout(random.randint(2500, 4000))
+            else:
+                content = await page.locator("body").inner_text(timeout=8000)
+                if restaurant_name.lower().replace("'", "") not in content.lower().replace("'", ""):
+                    logger.warning(f"No indexed store or search results for {restaurant_name}")
+                    return snapshots
 
             delivery_fee = await self.extract_text(
                 page,
@@ -214,9 +230,23 @@ class UberEatsScraper(BaseScraper):
         Returns:
             List of delivery snapshots
         """
-        search_ok = await self.search_restaurant(page, restaurant_name)
-        if not search_ok:
-            return []
+        try:
+            discovery = await discover_indexed_store_url(
+                platform=self.PLATFORM_NAME,
+                restaurant=restaurant_name,
+                address=address_info["address"],
+            )
+            if discovery.url:
+                await open_indexed_store_page(page, discovery.url)
+            else:
+                search_ok = await self.search_restaurant(page, restaurant_name)
+                if not search_ok:
+                    return []
+        except Exception as e:
+            logger.warning(f"OSINT navigation failed, falling back to search: {e}")
+            search_ok = await self.search_restaurant(page, restaurant_name)
+            if not search_ok:
+                return []
 
         return await self.extract_product_data(page, restaurant_name, address_info)
 
