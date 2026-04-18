@@ -15,6 +15,7 @@ from src.shared.constants import (
     RestaurantConstants,
 )
 from src.shared.utils import parse_minutes
+from src.shared.platform_urls import build_didi_food_url
 from src.etl.models import DeliverySnapshot
 from src.etl.base_scraper import BaseScraper
 
@@ -32,7 +33,7 @@ class DidiFoodScraper(BaseScraper):
     - Promotion detection
     """
 
-    BASE_URL = "https://www.didifood.com/mx"
+    BASE_URL = build_didi_food_url()
     PLATFORM_NAME = "didi"
 
     async def set_location(self, page: Page, address: str) -> bool:
@@ -88,7 +89,7 @@ class DidiFoodScraper(BaseScraper):
             True if search was successful
         """
         try:
-            search_url = f"{self.BASE_URL}/search?q={restaurant_name.replace(' ', '+')}"
+            search_url = build_didi_food_url()
             await page.goto(
                 search_url, wait_until="networkidle", timeout=ScrapingConstants.PAGE_LOAD_TIMEOUT
             )

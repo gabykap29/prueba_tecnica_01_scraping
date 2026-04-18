@@ -15,6 +15,7 @@ from src.shared.constants import (
     RestaurantConstants,
 )
 from src.shared.utils import parse_minutes
+from src.shared.platform_urls import build_rappi_search_url
 from src.etl.models import DeliverySnapshot
 from src.etl.base_scraper import BaseScraper
 
@@ -88,7 +89,7 @@ class RappiScraper(BaseScraper):
             True if search was successful
         """
         try:
-            search_url = f"{self.BASE_URL}/buscar?q={restaurant_name.replace(' ', '+')}"
+            search_url = build_rappi_search_url(restaurant_name)
             await page.goto(
                 search_url, wait_until="networkidle", timeout=ScrapingConstants.PAGE_LOAD_TIMEOUT
             )

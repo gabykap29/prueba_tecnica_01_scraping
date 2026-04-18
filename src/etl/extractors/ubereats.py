@@ -16,6 +16,7 @@ from src.shared.constants import (
     RestaurantConstants,
 )
 from src.shared.utils import parse_minutes
+from src.shared.platform_urls import build_ubereats_search_url
 from src.etl.models import DeliverySnapshot
 from src.etl.base_scraper import BaseScraper
 
@@ -87,7 +88,10 @@ class UberEatsScraper(BaseScraper):
             True if search was successful
         """
         try:
-            search_url = f"{self.BASE_URL}/search?q={restaurant_name.replace(' ', '+')}"
+            search_url = build_ubereats_search_url(
+                query=restaurant_name,
+                address="CDMX",
+            )
             await page.goto(
                 search_url, wait_until="networkidle", timeout=ScrapingConstants.PAGE_LOAD_TIMEOUT
             )

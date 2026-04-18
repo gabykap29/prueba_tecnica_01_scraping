@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 import csv
+import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from src.shared.platform_urls import PLATFORM_HOME_URLS, build_platform_search_url
 
 ADDRESSES = [
     ("Presidente Masaryk 61, Polanco, CDMX", "high"),
@@ -43,8 +47,6 @@ PLATFORM_RULES = {
         "service": 10,
         "eta": 31,
         "promo": "15% off",
-        "source_url": "https://www.rappi.com.mx",
-        "search_url": "https://www.rappi.com.mx/buscar?q={query}",
     },
     "ubereats": {
         "product": 1.02,
@@ -52,8 +54,6 @@ PLATFORM_RULES = {
         "service": 9,
         "eta": 28,
         "promo": "20% off",
-        "source_url": "https://www.ubereats.com/mx",
-        "search_url": "https://www.ubereats.com/mx/search?q={query}",
     },
     "didi": {
         "product": 0.98,
@@ -61,8 +61,6 @@ PLATFORM_RULES = {
         "service": 7,
         "eta": 30,
         "promo": "free delivery",
-        "source_url": "https://www.didifood.com/mx",
-        "search_url": "https://www.didifood.com/mx/search?q={query}",
     },
 }
 
@@ -123,9 +121,11 @@ def main() -> None:
                             "active_promo": promo,
                             "availability": availability,
                             "scraped_at": "2026-04-17T20:00:00Z",
-                            "source_url": rules["source_url"],
-                            "search_url": rules["search_url"].format(
-                                query=restaurant.replace(" ", "+")
+                            "source_url": PLATFORM_HOME_URLS[platform],
+                            "search_url": build_platform_search_url(
+                                platform=platform,
+                                query=restaurant,
+                                address=address,
                             ),
                         }
                     )
