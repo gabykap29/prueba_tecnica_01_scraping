@@ -1,20 +1,4 @@
-FROM python:3.11-slim AS builder
-
-WORKDIR /build
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-COPY pyproject.toml uv.lock */
-RUN pip install uv
-
-COPY src/ ./src/
-
-RUN uv sync --frozen --no-dev --profile docker
-
-
-FROM python:3.11-slim AS runtime
+FROM python:3.12-slim
 
 WORKDIR /app
 
@@ -38,11 +22,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libasound2 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /app /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY src ./src
+COPY sample_data ./sample_data
+COPY reports ./reports
+COPY run_api.py .
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
 EXPOSE 8000
 
-ENTRYPOINT ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
