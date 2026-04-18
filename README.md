@@ -65,6 +65,12 @@ Cada scraper se puede ejecutar de forma independiente:
 .\env\Scripts\python.exe -m src.etl.extractors.didi
 ```
 
+O ejecutar las tres plataformas con un solo comando:
+
+```bash
+.\env\Scripts\python.exe scripts\run_scrapers.py
+```
+
 Los scrapers usan Playwright, user agents rotativos, delays y deteccion basica de bloqueo. En demo, usar `sample_data/competitive_snapshot.csv` como backup si los sitios bloquean o cambian selectores.
 
 ## Generar Informe Ejecutivo
