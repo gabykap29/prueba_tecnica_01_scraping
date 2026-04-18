@@ -71,7 +71,17 @@ O ejecutar las tres plataformas con un solo comando:
 .\env\Scripts\python.exe scripts\run_scrapers.py
 ```
 
-Los scrapers usan Playwright, user agents rotativos, delays y deteccion basica de bloqueo. En demo, usar `sample_data/competitive_snapshot.csv` como backup si los sitios bloquean o cambian selectores.
+Los scrapers usan Playwright, `playwright-stealth`, un User-Agent moderno y consistente, delays y deteccion basica de bloqueo. En demo, usar `sample_data/competitive_snapshot.csv` como backup si los sitios bloquean o cambian selectores.
+
+Variables utiles para scraping live:
+
+```bash
+set SCRAPER_USER_AGENT=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/143.0.0.0 Safari/537.36
+set SCRAPER_CAPTCHA_PROVIDER=2captcha
+set SCRAPER_CAPTCHA_API_KEY=tu_api_key
+```
+
+El solver de captcha es opcional. Los proveedores soportados son `2captcha`, `capsolver`, `anti-captcha` y `anticaptcha`. Si el scraper detecta un reCAPTCHA/hCaptcha y no hay proveedor configurado, escribe `captcha_solver_not_configured` en el CSV live y mantiene el fallback CSV.
 
 ### Primer Scraper Live Validado: Rappi
 
@@ -79,6 +89,12 @@ Para correr un scrape live acotado de Rappi:
 
 ```bash
 .\env\Scripts\python.exe scripts\scrape_rappi_live.py --limit-addresses 1 --limit-restaurants 1 --output data\live_rappi_snapshot.csv
+```
+
+Si ya existe una sesion validada de Playwright, se puede reutilizar:
+
+```bash
+.\env\Scripts\python.exe scripts\scrape_rappi_live.py --storage-state data\storage_state.json --limit-addresses 1 --limit-restaurants 1
 ```
 
 Luego mezcla los registros live con el backup para alimentar la API:
@@ -102,6 +118,8 @@ Tambien hay runners live acotados para Uber Eats y DiDi:
 .\env\Scripts\python.exe scripts\scrape_ubereats_live.py --limit-addresses 1 --limit-restaurants 1 --output data\live_ubereats_snapshot.csv
 .\env\Scripts\python.exe scripts\scrape_didi_live.py --limit-addresses 1 --limit-restaurants 1 --output data\live_didi_snapshot.csv
 ```
+
+Tambien soportan `--storage-state data\storage_state.json` para reutilizar cookies, ubicacion y preferencias capturadas en una navegacion manual previa.
 
 En la corrida local inicial:
 

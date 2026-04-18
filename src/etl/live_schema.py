@@ -24,6 +24,7 @@ LIVE_FIELDS = [
     "search_url",
     "evidence_url",
     "error",
+    "stealth_applied",
 ]
 
 

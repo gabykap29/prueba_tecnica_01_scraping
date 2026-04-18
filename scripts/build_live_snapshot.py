@@ -80,6 +80,7 @@ def build_snapshot() -> Path:
         "search_url",
         "evidence_url",
         "error",
+        "stealth_applied",
         "source_type",
     ]
     fields = preferred + [field for field in fields if field not in preferred]

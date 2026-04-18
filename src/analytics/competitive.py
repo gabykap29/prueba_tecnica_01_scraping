@@ -133,6 +133,14 @@ def live_scrape_status(data_dir: str | Path = "data") -> list[dict]:
                 "priced_rows": len(priced_rows),
                 "status": "ok" if priced_rows else "no_prices",
                 "top_error": errors.most_common(1)[0][0],
+                "stealth_applied": next(
+                    (
+                        row.get("stealth_applied", "")
+                        for row in rows
+                        if row.get("stealth_applied", "")
+                    ),
+                    "",
+                ),
                 "evidence_url": next((row.get("evidence_url", "") for row in rows if row.get("evidence_url")), ""),
                 "search_url": next((row.get("search_url", "") for row in rows if row.get("search_url")), ""),
             }

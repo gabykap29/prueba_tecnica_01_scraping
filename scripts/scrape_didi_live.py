@@ -12,6 +12,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from playwright.async_api import async_playwright
 
+from src.etl.browser import create_stealth_page
+from src.etl.captcha_solver import solve_captcha_if_configured
 from src.etl.live_extract import page_text, parse_eta, parse_price_near, parse_promo
 from src.etl.live_schema import write_live_csv
 from src.shared.constants import RestaurantConstants, ScrapingConstants, ZoneConstants
@@ -23,30 +25,18 @@ async def scrape_didi(
     limit_addresses: int,
     limit_restaurants: int,
     headless: bool,
+    storage_state: str | None = None,
 ) -> Path:
     rows = []
     addresses = ZoneConstants.ZONES[:limit_addresses]
     restaurants = RestaurantConstants.TARGET_RESTAURANTS[:limit_restaurants]
 
     async with async_playwright() as playwright:
-        browser = await playwright.chromium.launch(
+        browser, context, page, stealth_applied = await create_stealth_page(
+            playwright,
             headless=headless,
-            args=[
-                "--no-sandbox",
-                "--disable-blink-features=AutomationControlled",
-                "--disable-dev-shm-usage",
-            ],
+            storage_state=storage_state,
         )
-        context = await browser.new_context(
-            viewport={"width": 1366, "height": 768},
-            locale="es-MX",
-            timezone_id="America/Mexico_City",
-            extra_http_headers={"Accept-Language": "es-MX,es;q=0.9,en;q=0.8"},
-        )
-        await context.add_init_script(
-            "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
-        )
-        page = await context.new_page()
         didi_url = build_didi_food_url()
 
         for address_info in addresses:
@@ -65,7 +55,14 @@ async def scrape_didi(
                     evidence_url = page.url
                     text = await page_text(page)
                     lowered = text.lower()
-                    if any(signal in lowered for signal in ScrapingConstants.BLOCKED_SIGNALS):
+                    captcha_result = await solve_captcha_if_configured(page, evidence_url)
+                    if captcha_result.solved:
+                        await page.wait_for_timeout(3000)
+                        text = await page_text(page)
+                        lowered = text.lower()
+                    if captcha_result.detected and not captcha_result.solved:
+                        error = captcha_result.error
+                    elif any(signal in lowered for signal in ScrapingConstants.BLOCKED_SIGNALS):
                         error = "blocked_or_captcha_detected"
                     elif restaurant.lower().replace("'", "") not in lowered.replace("'", ""):
                         error = "restaurant_not_visible_in_rendered_page"
@@ -92,9 +89,11 @@ async def scrape_didi(
                             "search_url": didi_url,
                             "evidence_url": evidence_url,
                             "error": error if product_price is None else error,
+                            "stealth_applied": stealth_applied,
                         }
                     )
 
+        await context.close()
         await browser.close()
 
     return write_live_csv(rows, output_path)
@@ -106,6 +105,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--limit-addresses", type=int, default=1)
     parser.add_argument("--limit-restaurants", type=int, default=1)
     parser.add_argument("--headed", action="store_true")
+    parser.add_argument("--storage-state", default=None)
     return parser.parse_args()
 
 
@@ -116,6 +116,7 @@ async def main() -> None:
         limit_addresses=args.limit_addresses,
         limit_restaurants=args.limit_restaurants,
         headless=not args.headed,
+        storage_state=args.storage_state,
     )
     print(f"Wrote {path}")
 
