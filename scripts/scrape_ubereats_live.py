@@ -1,10 +1,4 @@
-"""Run a focused live Rappi scrape and write a CSV snapshot.
-
-This script intentionally starts narrow: one platform, configurable address and
-restaurant limits, and explicit error rows when the site blocks or does not
-render comparable data. That makes the live pipeline honest and demo-safe while
-preserving the backup CSV as fallback.
-"""
+"""Run a focused live Uber Eats scrape and write a CSV snapshot."""
 
 from __future__ import annotations
 
@@ -16,21 +10,20 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from playwright.async_api import Page, async_playwright
+from playwright.async_api import async_playwright
 
 from src.etl.live_extract import page_text, parse_eta, parse_price_near, parse_promo
 from src.etl.live_schema import write_live_csv
 from src.shared.constants import RestaurantConstants, ScrapingConstants, ZoneConstants
-from src.shared.platform_urls import PLATFORM_HOME_URLS, build_rappi_search_url
+from src.shared.platform_urls import PLATFORM_HOME_URLS, build_ubereats_search_url
 
 
-async def scrape_rappi(
+async def scrape_ubereats(
     output_path: str,
     limit_addresses: int,
     limit_restaurants: int,
     headless: bool,
 ) -> Path:
-    """Scrape Rappi search result pages into a live CSV file."""
     rows = []
     addresses = ZoneConstants.ZONES[:limit_addresses]
     restaurants = RestaurantConstants.TARGET_RESTAURANTS[:limit_restaurants]
@@ -57,7 +50,10 @@ async def scrape_rappi(
 
         for address_info in addresses:
             for restaurant in restaurants:
-                search_url = build_rappi_search_url(restaurant)
+                search_url = build_ubereats_search_url(
+                    query=restaurant,
+                    address=address_info["address"],
+                )
                 scraped_at = datetime.utcnow().isoformat()
                 error = ""
                 text = ""
@@ -68,7 +64,7 @@ async def scrape_rappi(
                         wait_until="domcontentloaded",
                         timeout=ScrapingConstants.PAGE_LOAD_TIMEOUT,
                     )
-                    await page.wait_for_timeout(6000)
+                    await page.wait_for_timeout(8000)
                     evidence_url = page.url
                     text = await page_text(page)
                     lowered = text.lower()
@@ -81,10 +77,9 @@ async def scrape_rappi(
 
                 for product in RestaurantConstants.TARGET_PRODUCTS:
                     product_price = parse_price_near(text, product) if text else None
-                    availability = "available" if product_price is not None and not error else "unknown"
                     rows.append(
                         {
-                            "platform": "rappi",
+                            "platform": "ubereats",
                             "address": address_info["address"],
                             "zone_type": address_info["zone"],
                             "restaurant": restaurant,
@@ -94,9 +89,9 @@ async def scrape_rappi(
                             "service_fee": "",
                             "estimated_time_min": parse_eta(text) or "",
                             "active_promo": parse_promo(text),
-                            "availability": availability,
+                            "availability": "available" if product_price is not None and not error else "unknown",
                             "scraped_at": scraped_at,
-                            "source_url": PLATFORM_HOME_URLS["rappi"],
+                            "source_url": PLATFORM_HOME_URLS["ubereats"],
                             "search_url": search_url,
                             "evidence_url": evidence_url,
                             "error": error if product_price is None else error,
@@ -109,8 +104,8 @@ async def scrape_rappi(
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run a focused live Rappi scrape.")
-    parser.add_argument("--output", default="data/live_rappi_snapshot.csv")
+    parser = argparse.ArgumentParser(description="Run a focused live Uber Eats scrape.")
+    parser.add_argument("--output", default="data/live_ubereats_snapshot.csv")
     parser.add_argument("--limit-addresses", type=int, default=1)
     parser.add_argument("--limit-restaurants", type=int, default=1)
     parser.add_argument("--headed", action="store_true")
@@ -119,7 +114,7 @@ def parse_args() -> argparse.Namespace:
 
 async def main() -> None:
     args = parse_args()
-    path = await scrape_rappi(
+    path = await scrape_ubereats(
         output_path=args.output,
         limit_addresses=args.limit_addresses,
         limit_restaurants=args.limit_restaurants,

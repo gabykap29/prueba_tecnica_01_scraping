@@ -112,6 +112,34 @@ def load_current_competitive_data() -> list[CompetitiveRecord]:
     return load_competitive_data(resolve_data_path())
 
 
+def live_scrape_status(data_dir: str | Path = "data") -> list[dict]:
+    """Summarize live scrape files, including failed/blocked runs."""
+    directory = Path(data_dir)
+    statuses = []
+    for path in sorted(directory.glob("live_*_snapshot.csv")):
+        rows = []
+        with path.open("r", encoding="utf-8", newline="") as file:
+            rows = list(csv.DictReader(file))
+        if not rows:
+            continue
+        platform = rows[0].get("platform", path.stem.replace("live_", "").replace("_snapshot", ""))
+        priced_rows = [row for row in rows if str(row.get("product_price", "")).strip()]
+        errors = Counter(row.get("error", "") or "no_error" for row in rows)
+        statuses.append(
+            {
+                "platform": platform,
+                "file": str(path),
+                "rows": len(rows),
+                "priced_rows": len(priced_rows),
+                "status": "ok" if priced_rows else "no_prices",
+                "top_error": errors.most_common(1)[0][0],
+                "evidence_url": next((row.get("evidence_url", "") for row in rows if row.get("evidence_url")), ""),
+                "search_url": next((row.get("search_url", "") for row in rows if row.get("search_url")), ""),
+            }
+        )
+    return statuses
+
+
 def _avg(values: Iterable[float]) -> float:
     values_list = list(values)
     return round(mean(values_list), 2) if values_list else 0.0
@@ -347,6 +375,7 @@ def generate_summary(records: Iterable[CompetitiveRecord] | None = None) -> dict
     return {
         "dataset_path": str(resolve_data_path()),
         "source_type": "live+backup" if resolve_data_path() == LIVE_DATA_PATH else "backup",
+        "live_scrape_status": live_scrape_status(),
         "records": len(source),
         "addresses": len(addresses),
         "platforms": [row["platform"] for row in platform_averages(source)],

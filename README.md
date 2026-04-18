@@ -94,6 +94,22 @@ Output activo:
 
 La API prioriza `data/competitive_snapshot.csv`; si no existe, usa `sample_data/competitive_snapshot.csv`.
 
+### Scrapers Live De Uber Eats Y DiDi
+
+Tambien hay runners live acotados para Uber Eats y DiDi:
+
+```bash
+.\env\Scripts\python.exe scripts\scrape_ubereats_live.py --limit-addresses 1 --limit-restaurants 1 --output data\live_ubereats_snapshot.csv
+.\env\Scripts\python.exe scripts\scrape_didi_live.py --limit-addresses 1 --limit-restaurants 1 --output data\live_didi_snapshot.csv
+```
+
+En la corrida local inicial:
+
+- Uber Eats navego la URL con `pl` + `q`, pero devolvio bloqueo/captcha.
+- DiDi Food cargo `https://web.didiglobal.com/mx/food/`, pero no expuso el restaurante en la pagina renderizada sin interaccion adicional.
+
+Estos resultados quedan en los CSV live como evidencia y la API los expone en `live_scrape_status`.
+
 ## Generar Informe Ejecutivo
 
 ```bash
