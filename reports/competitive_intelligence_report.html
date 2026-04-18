@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Rappi Competitive Intelligence Report</title>
+  <style>
+    body {
+      color: #202124;
+      font-family: Arial, sans-serif;
+      line-height: 1.45;
+      margin: 0;
+      background: #f7f8fa;
+    }
+    header, section {
+      background: #fff;
+      border: 1px solid #d8dde6;
+      margin: 18px auto;
+      max-width: 1040px;
+      padding: 24px;
+    }
+    h1, h2, h3 {
+      margin-top: 0;
+    }
+    .kpis {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .kpi {
+      border: 1px solid #d8dde6;
+      padding: 14px;
+    }
+    .kpi strong {
+      display: block;
+      font-size: 26px;
+    }
+    .bar-row {
+      align-items: center;
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 120px 1fr 80px;
+      margin: 10px 0;
+    }
+    .bar-track {
+      background: #eef1f4;
+      height: 22px;
+    }
+    .bar-fill {
+      background: #18a058;
+      height: 22px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      border-bottom: 1px solid #d8dde6;
+      padding: 10px;
+      text-align: left;
+    }
+    .insight {
+      border-left: 4px solid #18a058;
+      margin: 14px 0;
+      padding-left: 14px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Rappi Competitive Intelligence Report</h1>
+    <p>Backup snapshot for the technical demo. The dataset covers Rappi, Uber Eats, and DiDi Food across representative CDMX zones.</p>
+    <div class="kpis">
+      <div class="kpi"><span>Records</span><strong>240</strong></div>
+      <div class="kpi"><span>Addresses</span><strong>20</strong></div>
+      <div class="kpi"><span>Platforms</span><strong>3</strong></div>
+      <div class="kpi"><span>Products</span><strong>4</strong></div>
+    </div>
+  </header>
+  <section><h2>Top 5 Actionable Insights</h2>
+            <article class="insight">
+              <h3>1. Price Positioning</h3>
+              <p><strong>Finding:</strong> Rappi is 9.97 MXN above didi on average for the comparable basket.</p>
+              <p><strong>Impact:</strong> Small basket gaps compound in high-frequency fast-food occasions.</p>
+              <p><strong>Recommendation:</strong> Use targeted basket subsidies on products where Rappi is above market.</p>
+            </article>
+            
+            <article class="insight">
+              <h3>2. Operational Advantage</h3>
+              <p><strong>Finding:</strong> ubereats has the lowest ETA at 31 min on average.</p>
+              <p><strong>Impact:</strong> ETA differences can shift conversion when prices are similar.</p>
+              <p><strong>Recommendation:</strong> Prioritize courier availability in zones where Rappi ETA is not first.</p>
+            </article>
+            
+            <article class="insight">
+              <h3>3. Geographic Variability</h3>
+              <p><strong>Finding:</strong> In periphery zones, Rappi delivery fee is 10.0 MXN above ubereats.</p>
+              <p><strong>Impact:</strong> Periphery zones are expansion-sensitive and delivery fees are highly visible.</p>
+              <p><strong>Recommendation:</strong> Test delivery-fee caps in Iztapalapa, Xochimilco, and GAM backup zones.</p>
+            </article>
+            
+            <article class="insight">
+              <h3>4. Promotion Strategy</h3>
+              <p><strong>Finding:</strong> rappi shows visible promos in 66% of observations.</p>
+              <p><strong>Impact:</strong> Promo visibility may make competitors feel cheaper before checkout.</p>
+              <p><strong>Recommendation:</strong> Mirror high-visibility promo placements on direct comparison products.</p>
+            </article>
+            
+            <article class="insight">
+              <h3>5. Fee Structure</h3>
+              <p><strong>Finding:</strong> didi has the lowest average service fee at 7.5 MXN.</p>
+              <p><strong>Impact:</strong> Service fees explain total-cost gaps even when item prices are close.</p>
+              <p><strong>Recommendation:</strong> Separate service-fee and delivery-fee diagnostics in weekly pricing reviews.</p>
+            </article>
+            </section>
+  
+    <section>
+      <h2>Average Total Cost by Platform</h2>
+      <div class="chart">
+            <div class="bar-row">
+              <span class="bar-label">rappi</span>
+              <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+              <span class="bar-value">178.63</span>
+            </div>
+            
+            <div class="bar-row">
+              <span class="bar-label">ubereats</span>
+              <div class="bar-track"><div class="bar-fill" style="width:96%"></div></div>
+              <span class="bar-value">172.8</span>
+            </div>
+            
+            <div class="bar-row">
+              <span class="bar-label">didi</span>
+              <div class="bar-track"><div class="bar-fill" style="width:94%"></div></div>
+              <span class="bar-value">168.66</span>
+            </div>
+            </div>
+    </section>
+    
+  
+    <section>
+      <h2>Average ETA by Platform</h2>
+      <div class="chart">
+            <div class="bar-row">
+              <span class="bar-label">rappi</span>
+              <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+              <span class="bar-value">34</span>
+            </div>
+            
+            <div class="bar-row">
+              <span class="bar-label">ubereats</span>
+              <div class="bar-track"><div class="bar-fill" style="width:91%"></div></div>
+              <span class="bar-value">31</span>
+            </div>
+            
+            <div class="bar-row">
+              <span class="bar-label">didi</span>
+              <div class="bar-track"><div class="bar-fill" style="width:97%"></div></div>
+              <span class="bar-value">33</span>
+            </div>
+            </div>
+    </section>
+    
+  
+    <section>
+      <h2>Average Delivery Fee by Platform</h2>
+      <div class="chart">
+            <div class="bar-row">
+              <span class="bar-label">rappi</span>
+              <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+              <span class="bar-value">39.15</span>
+            </div>
+            
+            <div class="bar-row">
+              <span class="bar-label">ubereats</span>
+              <div class="bar-track"><div class="bar-fill" style="width:81%"></div></div>
+              <span class="bar-value">31.75</span>
+            </div>
+            
+            <div class="bar-row">
+              <span class="bar-label">didi</span>
+              <div class="bar-track"><div class="bar-fill" style="width:88%"></div></div>
+              <span class="bar-value">34.75</span>
+            </div>
+            </div>
+    </section>
+    
+  
+    <section>
+      <h2>Visible Promotion Count</h2>
+      <div class="chart">
+            <div class="bar-row">
+              <span class="bar-label">rappi</span>
+              <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+              <span class="bar-value">53</span>
+            </div>
+            
+            <div class="bar-row">
+              <span class="bar-label">ubereats</span>
+              <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+              <span class="bar-value">53</span>
+            </div>
+            
+            <div class="bar-row">
+              <span class="bar-label">didi</span>
+              <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+              <span class="bar-value">53</span>
+            </div>
+            </div>
+    </section>
+    
+  
+    <section>
+      <h2>Geographic Variability</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Zone</th>
+            <th>Platform</th>
+            <th>Avg Total Cost</th>
+            <th>Delivery Fee</th>
+            <th>ETA Min</th>
+          </tr>
+        </thead>
+        <tbody>
+            <tr>
+              <td>high</td>
+              <td>didi</td>
+              <td>168.28</td>
+              <td>28.8</td>
+              <td>29</td>
+            </tr>
+            
+            <tr>
+              <td>high</td>
+              <td>rappi</td>
+              <td>176.96</td>
+              <td>31.8</td>
+              <td>30</td>
+            </tr>
+            
+            <tr>
+              <td>high</td>
+              <td>ubereats</td>
+              <td>172.65</td>
+              <td>25.8</td>
+              <td>27</td>
+            </tr>
+            
+            <tr>
+              <td>mid</td>
+              <td>didi</td>
+              <td>167.42</td>
+              <td>33.0</td>
+              <td>32</td>
+            </tr>
+            
+            <tr>
+              <td>mid</td>
+              <td>rappi</td>
+              <td>176.0</td>
+              <td>36.0</td>
+              <td>33</td>
+            </tr>
+            
+            <tr>
+              <td>mid</td>
+              <td>ubereats</td>
+              <td>171.58</td>
+              <td>30.0</td>
+              <td>30</td>
+            </tr>
+            
+            <tr>
+              <td>periphery</td>
+              <td>didi</td>
+              <td>170.37</td>
+              <td>41.0</td>
+              <td>38</td>
+            </tr>
+            
+            <tr>
+              <td>periphery</td>
+              <td>rappi</td>
+              <td>182.84</td>
+              <td>48.0</td>
+              <td>39</td>
+            </tr>
+            
+            <tr>
+              <td>periphery</td>
+              <td>ubereats</td>
+              <td>174.31</td>
+              <td>38.0</td>
+              <td>36</td>
+            </tr>
+            </tbody>
+      </table>
+    </section>
+    
+</body>
+</html>
