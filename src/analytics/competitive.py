@@ -36,6 +36,8 @@ class CompetitiveRecord:
     active_promo: str
     availability: str
     scraped_at: str
+    source_url: str
+    search_url: str
 
     @property
     def total_cost(self) -> float:
@@ -74,6 +76,8 @@ def load_competitive_data(path: str | Path = DEFAULT_DATA_PATH) -> list[Competit
                     active_promo=row.get("active_promo", "").strip(),
                     availability=row.get("availability", "available").strip().lower(),
                     scraped_at=row.get("scraped_at", "").strip(),
+                    source_url=row.get("source_url", "").strip(),
+                    search_url=row.get("search_url", "").strip(),
                 )
             )
     return records
@@ -117,6 +121,8 @@ def platform_averages(records: Iterable[CompetitiveRecord]) -> list[dict]:
         rows.append(
             {
                 "platform": platform,
+                "source_url": items[0].source_url,
+                "sample_search_url": items[0].search_url,
                 "avg_product_price": _avg(item.product_price for item in items),
                 "avg_delivery_fee": _avg(item.delivery_fee for item in items),
                 "avg_service_fee": _avg(item.service_fee for item in items),
@@ -309,6 +315,14 @@ def generate_summary(records: Iterable[CompetitiveRecord] | None = None) -> dict
         "records": len(source),
         "addresses": len(addresses),
         "platforms": [row["platform"] for row in platform_averages(source)],
+        "source_urls": [
+            {
+                "platform": row["platform"],
+                "source_url": row["source_url"],
+                "sample_search_url": row["sample_search_url"],
+            }
+            for row in platform_averages(source)
+        ],
         "products": products,
         "platform_averages": platform_averages(source),
         "zones": zone_summary(source),

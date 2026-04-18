@@ -37,9 +37,33 @@ PRODUCTS = [
 ]
 
 PLATFORM_RULES = {
-    "rappi": {"product": 1.00, "delivery": 35, "service": 10, "eta": 31, "promo": "15% off"},
-    "ubereats": {"product": 1.02, "delivery": 29, "service": 9, "eta": 28, "promo": "20% off"},
-    "didi": {"product": 0.98, "delivery": 32, "service": 7, "eta": 30, "promo": "free delivery"},
+    "rappi": {
+        "product": 1.00,
+        "delivery": 35,
+        "service": 10,
+        "eta": 31,
+        "promo": "15% off",
+        "source_url": "https://www.rappi.com.mx",
+        "search_url": "https://www.rappi.com.mx/buscar?q={query}",
+    },
+    "ubereats": {
+        "product": 1.02,
+        "delivery": 29,
+        "service": 9,
+        "eta": 28,
+        "promo": "20% off",
+        "source_url": "https://www.ubereats.com/mx",
+        "search_url": "https://www.ubereats.com/mx/search?q={query}",
+    },
+    "didi": {
+        "product": 0.98,
+        "delivery": 32,
+        "service": 7,
+        "eta": 30,
+        "promo": "free delivery",
+        "source_url": "https://www.didifood.com/mx",
+        "search_url": "https://www.didifood.com/mx/search?q={query}",
+    },
 }
 
 ZONE_ADJUSTMENTS = {
@@ -65,6 +89,8 @@ def main() -> None:
         "active_promo",
         "availability",
         "scraped_at",
+        "source_url",
+        "search_url",
     ]
 
     with output_path.open("w", encoding="utf-8", newline="") as file:
@@ -97,6 +123,10 @@ def main() -> None:
                             "active_promo": promo,
                             "availability": availability,
                             "scraped_at": "2026-04-17T20:00:00Z",
+                            "source_url": rules["source_url"],
+                            "search_url": rules["search_url"].format(
+                                query=restaurant.replace(" ", "+")
+                            ),
                         }
                     )
 
