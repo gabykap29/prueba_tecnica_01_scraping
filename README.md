@@ -2,6 +2,23 @@
 
 Sistema de competitive intelligence para comparar Rappi contra Uber Eats y DiDi Food en Mexico usando scraping, datos de respaldo reproducibles, API analitica y reporte ejecutivo.
 
+## Demo
+
+### Video de demostración
+
+Mira el video de funcionamiento del sistema:
+
+<details>
+<summary>Ver video demo</summary>
+
+https://github.com/user-attachments/files/video-demo.mp4
+
+</details>
+
+O descarga directamente: [video-demo.mp4](files/video-demo.mp4)
+
+---
+
 ## Scope
 
 - Plataformas: Rappi, Uber Eats y DiDi Food.
@@ -59,6 +76,33 @@ GEMINI_API_KEY=your_gemini_key
 # Frontend
 NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
 ```
+
+### Cómo obtener las API Keys
+
+#### SerpAPI (para búsqueda OSINT)
+
+SerpAPI se usa para buscar precios en Google cuando el scraping falla.
+
+1. **Regístrate** en: https://serpapi.com
+2. Usa tu cuenta **GitHub** o **Google**
+3. Verifica tu **email** y **teléfono**
+4. Elije el plan **Free** (100 búsquedas/mes gratis) o uno de pago
+5. Ve a **Manage API Key** en el dashboard
+6. Copia tu API key
+
+Gratis: 250 búsquedas/mes (U.S. Legal Shield, ZeroTrace Mode)
+Paid: Desde $75/mes para más búsquedas
+
+#### Google Gemini API (para el agente conversacional)
+
+Gemini se usa para el agente de IA conversacional.
+
+1. **Regístrate** en: https://aistudio.google.com/app/apikey
+2. Haz clic en **Create API Key**
+3. Copia la key
+
+Gratis (con límites): 15 requests/min, 1M tokens/day
+ paid: $0.35-$0.50 / 1M tokens
 
 ### 5. Instalar frontend
 
