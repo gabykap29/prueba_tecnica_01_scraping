@@ -16,6 +16,7 @@ from statistics import mean
 from typing import Iterable
 
 
+LIVE_DATA_PATH = Path("data/competitive_snapshot.csv")
 DEFAULT_DATA_PATH = Path("sample_data/competitive_snapshot.csv")
 PLATFORM_ORDER = ("rappi", "ubereats", "didi")
 
@@ -38,6 +39,9 @@ class CompetitiveRecord:
     scraped_at: str
     source_url: str
     search_url: str
+    evidence_url: str
+    error: str
+    source_type: str
 
     @property
     def total_cost(self) -> float:
@@ -69,18 +73,43 @@ def load_competitive_data(path: str | Path = DEFAULT_DATA_PATH) -> list[Competit
                     zone_type=row["zone_type"].strip().lower(),
                     restaurant=row["restaurant"].strip(),
                     product_name=row["product_name"].strip(),
-                    product_price=float(row["product_price"]),
-                    delivery_fee=float(row["delivery_fee"]),
-                    service_fee=float(row["service_fee"]),
-                    estimated_time_min=int(float(row["estimated_time_min"])),
+                    product_price=_safe_float(row.get("product_price")),
+                    delivery_fee=_safe_float(row.get("delivery_fee")),
+                    service_fee=_safe_float(row.get("service_fee")),
+                    estimated_time_min=int(_safe_float(row.get("estimated_time_min"))),
                     active_promo=row.get("active_promo", "").strip(),
                     availability=row.get("availability", "available").strip().lower(),
                     scraped_at=row.get("scraped_at", "").strip(),
                     source_url=row.get("source_url", "").strip(),
                     search_url=row.get("search_url", "").strip(),
+                    evidence_url=row.get("evidence_url", "").strip(),
+                    error=row.get("error", "").strip(),
+                    source_type=row.get("source_type", "backup").strip() or "backup",
                 )
             )
     return records
+
+
+def _safe_float(value: object) -> float:
+    if value is None or str(value).strip() == "":
+        return 0.0
+    return float(str(value).replace(",", "."))
+
+
+def resolve_data_path(path: str | Path | None = None) -> Path:
+    """Resolve the current competitive dataset path.
+
+    Live merged data wins when present. The deterministic sample remains the
+    fallback for demos and blocked platform runs.
+    """
+    if path is not None:
+        return Path(path)
+    return LIVE_DATA_PATH if LIVE_DATA_PATH.exists() else DEFAULT_DATA_PATH
+
+
+def load_current_competitive_data() -> list[CompetitiveRecord]:
+    """Load live merged data when available, otherwise load backup data."""
+    return load_competitive_data(resolve_data_path())
 
 
 def _avg(values: Iterable[float]) -> float:
@@ -123,6 +152,7 @@ def platform_averages(records: Iterable[CompetitiveRecord]) -> list[dict]:
                 "platform": platform,
                 "source_url": items[0].source_url,
                 "sample_search_url": items[0].search_url,
+                "evidence_url": next((item.evidence_url for item in items if item.evidence_url), ""),
                 "avg_product_price": _avg(item.product_price for item in items),
                 "avg_delivery_fee": _avg(item.delivery_fee for item in items),
                 "avg_service_fee": _avg(item.service_fee for item in items),
@@ -130,6 +160,9 @@ def platform_averages(records: Iterable[CompetitiveRecord]) -> list[dict]:
                 "avg_eta_min": round(_avg(item.estimated_time_min for item in items)),
                 "promo_share": round(promo_count / len(items), 3),
                 "availability_rate": round(sum(item.available for item in items) / len(items), 3),
+                "live_records": sum(item.source_type == "live" for item in items),
+                "backup_records": sum(item.source_type == "backup" for item in items),
+                "error_records": sum(1 for item in items if item.error),
                 "records": len(items),
             }
         )
@@ -142,7 +175,7 @@ def compare_product(
     records: Iterable[CompetitiveRecord] | None = None,
 ) -> dict:
     """Compare a product across platforms and return the best option by total cost."""
-    source = list(records) if records is not None else load_competitive_data()
+    source = list(records) if records is not None else load_current_competitive_data()
     filtered = _filter_records(source, product=product, zone_type=zone_type)
     rows = platform_averages(filtered)
     if not rows:
@@ -308,10 +341,12 @@ def top_insights(records: Iterable[CompetitiveRecord]) -> list[dict]:
 
 def generate_summary(records: Iterable[CompetitiveRecord] | None = None) -> dict:
     """Build a complete summary for API responses and reports."""
-    source = list(records) if records is not None else load_competitive_data()
+    source = list(records) if records is not None else load_current_competitive_data()
     addresses = {record.address for record in source}
     products = sorted({record.product_name for record in source})
     return {
+        "dataset_path": str(resolve_data_path()),
+        "source_type": "live+backup" if resolve_data_path() == LIVE_DATA_PATH else "backup",
         "records": len(source),
         "addresses": len(addresses),
         "platforms": [row["platform"] for row in platform_averages(source)],
@@ -320,6 +355,10 @@ def generate_summary(records: Iterable[CompetitiveRecord] | None = None) -> dict
                 "platform": row["platform"],
                 "source_url": row["source_url"],
                 "sample_search_url": row["sample_search_url"],
+                "evidence_url": row["evidence_url"],
+                "live_records": row["live_records"],
+                "backup_records": row["backup_records"],
+                "error_records": row["error_records"],
             }
             for row in platform_averages(source)
         ],

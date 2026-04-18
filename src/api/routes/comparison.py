@@ -5,7 +5,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Query
 
-from src.analytics.competitive import compare_product, generate_summary, load_competitive_data
+from src.analytics.competitive import compare_product, generate_summary, load_current_competitive_data
 
 router = APIRouter()
 
@@ -33,7 +33,7 @@ def compare_prices(
         >>> response["best_option"]
         "ubereats"
     """
-    records = load_competitive_data()
+    records = load_current_competitive_data()
     comparison = compare_product(product=product, zone_type=zone, records=records)
     comparison["period"] = {
         "start": start_date or min(record.scraped_at for record in records),
@@ -64,7 +64,7 @@ def get_rankings(
         >>> len(response["rankings"])
         3
     """
-    summary = generate_summary(load_competitive_data())
+    summary = generate_summary(load_current_competitive_data())
     metric_key = {
         "price": "avg_total_cost",
         "eta": "avg_eta_min",

@@ -73,6 +73,27 @@ O ejecutar las tres plataformas con un solo comando:
 
 Los scrapers usan Playwright, user agents rotativos, delays y deteccion basica de bloqueo. En demo, usar `sample_data/competitive_snapshot.csv` como backup si los sitios bloquean o cambian selectores.
 
+### Primer Scraper Live Validado: Rappi
+
+Para correr un scrape live acotado de Rappi:
+
+```bash
+.\env\Scripts\python.exe scripts\scrape_rappi_live.py --limit-addresses 1 --limit-restaurants 1 --output data\live_rappi_snapshot.csv
+```
+
+Luego mezcla los registros live con el backup para alimentar la API:
+
+```bash
+.\env\Scripts\python.exe scripts\build_live_snapshot.py
+```
+
+Output activo:
+
+- `data/live_rappi_snapshot.csv`: evidencia cruda del scrape de Rappi.
+- `data/competitive_snapshot.csv`: snapshot usado por la API cuando existe.
+
+La API prioriza `data/competitive_snapshot.csv`; si no existe, usa `sample_data/competitive_snapshot.csv`.
+
 ## Generar Informe Ejecutivo
 
 ```bash

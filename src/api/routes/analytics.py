@@ -9,7 +9,7 @@ from src.analytics.competitive import (
     compare_product,
     eta_by_platform,
     generate_summary,
-    load_competitive_data,
+    load_current_competitive_data,
     platform_averages,
     promo_summary,
 )
@@ -40,7 +40,7 @@ def get_prices(
         >>> response["avg_delivery_fee"]
         32.5
     """
-    records = load_competitive_data()
+    records = load_current_competitive_data()
     filtered = [
         record
         for record in records
@@ -92,7 +92,7 @@ def get_et_as(
         >>> len(response["ETAs"])
         3
     """
-    records = load_competitive_data()
+    records = load_current_competitive_data()
     etas = eta_by_platform(records, restaurant=restaurant)
     return {
         "restaurant": restaurant,
@@ -123,7 +123,7 @@ def get_trends(
         >>> len(response["trends"])
         7
     """
-    records = load_competitive_data()
+    records = load_current_competitive_data()
     comparison = compare_product(product=product, zone_type=zone, records=records)
     return {
         "product": product,
@@ -139,6 +139,6 @@ def get_trends(
 def get_summary():
     """Get executive competitive intelligence summary."""
     return {
-        **generate_summary(load_competitive_data()),
+        **generate_summary(load_current_competitive_data()),
         "timestamp": datetime.utcnow().isoformat(),
     }
